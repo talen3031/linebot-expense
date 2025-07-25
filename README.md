@@ -44,11 +44,10 @@
 | 欄位        | 型別      | 說明                  |
 |-------------|-----------|-----------------------|
 | _id         | ObjectId  | MongoDB自動產生主鍵   |
-| user_id     | string    | LINE User ID          |
+| line_user_id| string    | LINE User ID          |
 | amount      | int/float | 支出金額              |
 | desc        | string    | 支出描述              |
 | category    | string    | 分類主類（如飲食）    |
-| subcategory | string    | 子分類（如早餐）      |
 | created_at  | datetime  | 建立時間              |
 
 ### categories（分類關鍵字）
