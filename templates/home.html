@@ -1,0 +1,96 @@
+<!-- templates/home.html -->
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>加入 LINE Bot 好友</title>
+    <style>
+        body {
+            background: linear-gradient(135deg,#e0f7fa 0%,#e8f5e9 100%);
+            color: #222;
+            font-family: 'Segoe UI', Arial, '微軟正黑體', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            min-height: 100vh;
+        }
+        .card {
+            background: #fff;
+            margin-top: 50px;
+            padding: 40px 30px 30px 30px;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px 0 rgba(60, 185, 120, 0.10),0 1.5px 4px 0 rgba(0,0,0,0.10);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 320px;
+            max-width: 95vw;
+        }
+        h2 {
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+        }
+        p {
+            margin-top: 0;
+            margin-bottom: 25px;
+            color: #666;
+            font-size: 1.07em;
+        }
+        .line-btn {
+            font-size: 21px;
+            padding: 14px 45px;
+            color: #fff;
+            background-color: #06C755;
+            border: none;
+            border-radius: 32px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 2px 8px rgba(6,199,85,0.15);
+            margin-bottom: 20px;
+            transition: background 0.15s;
+        }
+        .line-btn:hover {
+            background-color: #2de97d;
+        }
+        .qrcode {
+            margin: 18px auto 0 auto;
+            background: #fff;
+            padding: 10px;
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(50,50,50,0.04);
+            width: 220px;
+            max-width: 85vw;
+        }
+        @media (max-width: 500px) {
+            .card {
+                padding: 24px 6vw 18px 6vw;
+            }
+            .qrcode {
+                width: 66vw;
+            }
+        }
+        .desc {
+            margin-top: 30px;
+            color: #AAA;
+            font-size: 0.98em;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>加入 記帳小幫手 好友</h2>
+        <p>手機點擊下方按鈕<br>或用 LINE 掃描 QR Code 加入</p>
+        <a href="{{ add_url }}" target="_blank">
+            <button class="line-btn">➕ 加入 LINE 好友</button>
+        </a>
+        <div>
+            <img class="qrcode" src="{{ qr_url }}" alt="LINE QR Code">
+        </div>
+        <div class="desc">
+            <span>※ 如果用桌機開啟，請用手機 LINE 掃描 QR Code。</span>
+        </div>
+    </div>
+</body>
+</html>
