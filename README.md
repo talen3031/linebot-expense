@@ -74,6 +74,4 @@
 
 - **平台**：Railway
 - **MongoDB 資料庫平台**：MongoDB Atlas
-- **Webhook 服務網址**：[https://web-production-ef82.up.railway.app/](https://web-production-ef82.up.railway.app/)
-
 ---
