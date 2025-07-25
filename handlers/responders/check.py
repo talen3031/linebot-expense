@@ -28,6 +28,8 @@ def handle(event, line_bot_api, user_id, command):
         recs = get_all_expenses(user_id)
         send_expense_detail(event, line_bot_api, recs)
 
+    #==================================某分類明細==========================================
+
     # 指定月份+分類明細（查6月住家、查7月飲食...）
     elif scope == "month_cat":
         month, cat = command["month"], command["cat"]
@@ -91,7 +93,7 @@ def handle(event, line_bot_api, user_id, command):
 
         send_expense_detail(event, line_bot_api, records,cat, "全部")
 
-
+    #==================================統計==========================================
 
     # 本日統計
     elif scope == "day":
