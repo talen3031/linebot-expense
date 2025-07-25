@@ -25,8 +25,55 @@
 
 - **後端框架**：Flask
 - **LINE SDK**：line-bot-sdk
-- **資料庫**：MongoDB（支援本地與雲端）
+- **資料庫**：MongoDB
 - **NLP 分類**：jieba 分詞 + 關鍵字字典自學習
-- **設定檔**：環境變數（.env）
+
+---
+## Webhook 架設與 LINE Bot 設定方式
+
+1. **LINE Developers Console 新建 Messaging API channel**
+2. **取得 Channel access token、Channel secret**
+3. **部署 webhook server（本專案已部署於 Railway）**
+4. **在 LINE Developers 設定 Webhook URL 並開啟 Use webhook 開關**  
+5. **將 Channel access token、Channel secret、MONGO_URI 等設為環境變數**
+
+## 資料庫 Schema
+
+### expenses（支出紀錄）
+
+| 欄位        | 型別      | 說明                  |
+|-------------|-----------|-----------------------|
+| _id         | ObjectId  | MongoDB自動產生主鍵   |
+| user_id     | string    | LINE User ID          |
+| amount      | int/float | 支出金額              |
+| desc        | string    | 支出描述              |
+| category    | string    | 分類主類（如飲食）    |
+| subcategory | string    | 子分類（如早餐）      |
+| created_at  | datetime  | 建立時間              |
+
+### categories（分類關鍵字）
+
+| 欄位      | 型別    | 說明                        |
+|-----------|---------|-----------------------------|
+| _id       | ObjectId| 主鍵                        |
+| category  | string  | 分類名稱（如飲食）          |
+| keywords  | array   | 關鍵字列表（如["早餐"]）    |
+| updated_at| datetime| 更新時間                    |
+
+### users（用戶資訊）
+
+| 欄位         | 型別      | 說明                               |
+|--------------|-----------|------------------------------------|
+| _id          | ObjectId  | MongoDB自動產生主鍵                |
+| line_user_id | string    | LINE User ID（唯一鍵，索引）        |
+| display_name | string    | 用戶顯示名稱                       |
+| created_at   | datetime  | 加入時間（首次建立記錄時間）        |
+| last_active  | datetime  | 最近一次活動時間（可定期更新）      |
+
+## 部署平台與架構
+
+- **平台**：Railway
+- **MongoDB 資料庫平台**：MongoDB Atlas
+- **Webhook 服務網址**：[https://web-production-ef82.up.railway.app/](https://web-production-ef82.up.railway.app/)
 
 ---
