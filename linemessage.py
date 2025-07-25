@@ -96,16 +96,20 @@ def send_category_detail(event, line_bot_api, cat, records, period_text):
         FlexSendMessage(alt_text=f"{period_text}{cat}明細", contents=flex_data)
     )
 
-def send_flex_summary(event, line_bot_api, stats, period_text="本期"):
+from linebot.models import (
+    QuickReply, QuickReplyButton, MessageAction, FlexSendMessage, TextSendMessage
+)
+
+def send_flex_summary(event, line_bot_api, stats, period_text="本期", month_number=None):
     if not stats:
         line_bot_api.reply_message(
-            event.reply_token, 
+            event.reply_token,
             TextSendMessage(
                 f"{period_text}尚無紀錄",
                 quick_reply=QuickReply(items=[
-                    QuickReplyButton(action=MessageAction(label="本日統計", text="本日總結")),
-                    QuickReplyButton(action=MessageAction(label="本週統計", text="本週總結")),
-                    QuickReplyButton(action=MessageAction(label="本月統計", text="本月總結")),
+                    QuickReplyButton(action=MessageAction(label="本日統計", text="本日統計")),
+                    QuickReplyButton(action=MessageAction(label="本週統計", text="本週統計")),
+                    QuickReplyButton(action=MessageAction(label="本月統計", text="本月統計")),
                     QuickReplyButton(action=MessageAction(label="查看明細", text="查帳"))
                 ])
             )
@@ -119,16 +123,15 @@ def send_flex_summary(event, line_bot_api, stats, period_text="本期"):
             TextSendMessage(
                 f"{period_text}沒有支出紀錄",
                 quick_reply=QuickReply(items=[
-                    QuickReplyButton(action=MessageAction(label="本日統計", text="本日總結")),
-                    QuickReplyButton(action=MessageAction(label="本週統計", text="本週總結")),
-                    QuickReplyButton(action=MessageAction(label="本月統計", text="本月總結")),
+                    QuickReplyButton(action=MessageAction(label="本日統計", text="本日統計")),
+                    QuickReplyButton(action=MessageAction(label="本週統計", text="本週統計")),
+                    QuickReplyButton(action=MessageAction(label="本月統計", text="本月統計")),
                     QuickReplyButton(action=MessageAction(label="查看明細", text="查帳"))
                 ])
             )
         )
         return
 
-    # 類別顏色與 icon
     category_colors = {
         "學習": "#4F98FF",
         "住家": "#AD7CFF",
@@ -140,6 +143,7 @@ def send_flex_summary(event, line_bot_api, stats, period_text="本期"):
         "金融": "#B1C1C1",
         "其他": "#B0B0B0"
     }
+
     category_icons = {
         "學習": "📘",
         "住家": "🏠",
@@ -151,16 +155,22 @@ def send_flex_summary(event, line_bot_api, stats, period_text="本期"):
         "金融": "💰",
         "其他": "🔖"
     }
-    period_cmd_map = {
-        "本月": "查本月",
-        "本週": "查本週",
-        "本日": "查本日",
-        "本期": "查本期"  # 其它特殊需求
-    }
-    cmd_prefix = period_cmd_map.get(period_text, "查")
 
-    BAR_MAX = 20
+    if month_number is not None:
+        cmd_prefix = f"查{month_number}月"
+    elif period_text == "所有紀錄":
+        cmd_prefix = "查所有"
+    else:
+        period_cmd_map = {
+            "本月": "查本月",
+            "本週": "查本週",
+            "本日": "查本日",
+            "本期": "查本期"
+        }
+        cmd_prefix = period_cmd_map.get(period_text, "查")
+
     stats = sorted(stats, key=lambda r: -r['total'])
+    BAR_MAX = 20
 
     items = []
     for r in stats:
@@ -224,7 +234,6 @@ def send_flex_summary(event, line_bot_api, stats, period_text="本期"):
             ]
         })
 
-    # 加上總額
     items.append({
         "type": "box",
         "layout": "horizontal",
@@ -254,10 +263,65 @@ def send_flex_summary(event, line_bot_api, stats, period_text="本期"):
             alt_text=f"{period_text}支出統計",
             contents=flex_data,
             quick_reply=QuickReply(items=[
-                QuickReplyButton(action=MessageAction(label="本日統計", text="本日總結")),
-                QuickReplyButton(action=MessageAction(label="本週統計", text="本週總結")),
-                QuickReplyButton(action=MessageAction(label="本月統計", text="本月總結")),
-                QuickReplyButton(action=MessageAction(label="查看明細", text="查帳"))
+                QuickReplyButton(action=MessageAction(label="本日統計", text="本日統計")),
+                QuickReplyButton(action=MessageAction(label="本週統計", text="本週統計")),
+                QuickReplyButton(action=MessageAction(label="本月統計", text="本月統計")),
+                QuickReplyButton(action=MessageAction(label="查所有明細", text="查帳"))
             ])
+        )
+    )
+
+
+def send_month_menu(event, line_bot_api):
+    buttons = []
+    for i in range(1, 13):
+        buttons.append({
+            "type": "button",
+            "style": "primary",
+            "color": "#42C686",
+            "action": {
+                "type": "message",
+                "label": f"{i}月",
+                "text": f"查{i}月統計"
+            }
+        })
+
+    # 將 12 個按鈕切成 4 行，每行 3 個
+    rows = []
+    for i in range(0, 12, 3):
+        rows.append({
+            "type": "box",
+            "layout": "horizontal",
+            "spacing": "sm",
+            "contents": buttons[i:i+3]
+        })
+
+
+    flex_data = {
+        "type": "bubble",
+        "body": {
+            "type": "box",
+            "layout": "vertical",
+            "spacing": "md",
+            "contents": [
+                {
+                    "type": "text",
+                    "text": "📅 請選擇月份",
+                    "weight": "bold",
+                    "size": "xl"
+                },
+                {
+                    "type": "separator"
+                },
+                *rows
+            ]
+        }
+    }
+
+    line_bot_api.reply_message(
+        event.reply_token,
+        FlexSendMessage(
+            alt_text="月份查詢選單",
+            contents=flex_data
         )
     )

@@ -2,7 +2,7 @@ from flask import Flask, request, abort, render_template
 from linebot import LineBotApi, WebhookHandler
 from linebot.models import MessageEvent, TextMessage
 from config import LINE_CHANNEL_ACCESS_TOKEN, LINE_CHANNEL_SECRET
-from handlers import handle_text_message
+from handlers.core import handle_text_message
 
 app = Flask(__name__)
 
