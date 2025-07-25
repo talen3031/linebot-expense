@@ -8,20 +8,20 @@ app = Flask(__name__)
 
 line_bot_api = LineBotApi(LINE_CHANNEL_ACCESS_TOKEN)
 handler = WebhookHandler(LINE_CHANNEL_SECRET)
-
 @app.route("/callback", methods=['POST'])
 def callback():
     print("==收到 LINE webhook ==")
-    print("Headers:", request.headers)
-    print("Body:", request.get_data(as_text=True))
-    signature = request.headers['X-Line-Signature']
-    body = request.get_data(as_text=True)
     try:
+        signature = request.headers.get('X-Line-Signature', 'no-signature')
+        body = request.get_data(as_text=True)
+        print("Body:", body)
+        print("Signature:", signature)
         handler.handle(body, signature)
     except Exception as e:
-        print(e)
+        print("Webhook Exception:", repr(e))
         abort(400)
     return 'OK'
+
 
 @handler.add(MessageEvent, message=TextMessage)
 def on_message(event):
