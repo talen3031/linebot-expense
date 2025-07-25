@@ -26,6 +26,8 @@ def callback():
 @handler.add(MessageEvent, message=TextMessage)
 def on_message(event):
     handle_text_message(event, line_bot_api)
-    
+import os
+
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=5000)
+    port = int(os.environ.get("PORT", 10000))   # 10000 是預設備用值
+    app.run(host="0.0.0.0", port=port)
