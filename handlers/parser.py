@@ -21,7 +21,7 @@ month_text_set = {
 }
 
 def parse_command(text):
-    # 統計
+    # 統計本日本週本月
     if text in day_text_set:
         return {"type": "check", "scope": "day"}
     if text in week_text_set:
@@ -34,7 +34,7 @@ def parse_command(text):
     # 查帳
     if text in ("查帳","明細", "所有明細"):
         return {"type": "check", "scope": "all"}
-    #
+    #查月份
     if text in ("查月份", "月份選單"):
         return {"type": "check", "scope": "month_menu"}
     #查一月統計

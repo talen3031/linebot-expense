@@ -18,9 +18,11 @@ def get_last_expenses(line_user_id, limit=5):
     return list(db.expenses.find({"line_user_id": line_user_id}).sort("created_at", -1).limit(limit))
 def get_all_expenses(line_user_id):
     return list(db.expenses.find({"line_user_id": line_user_id}).sort("created_at", -1))
+
 def delete_all_expenses(line_user_id):
     result = db.expenses.delete_many({"line_user_id": line_user_id})
     return result.deleted_count
+
 def delete_expenses_by_range(line_user_id, start_idx, end_idx, limit=20):
     """
     刪除最近 limit 筆中的 start_idx ~ end_idx（包含）的紀錄。
@@ -40,13 +42,37 @@ def delete_expense_by_index(line_user_id, idx, limit=5):
         db.expenses.delete_one({"_id": recs[idx]['_id']})
         return True
     return False
+#預設查全部 可輸入起始日期 結束日期
+def summary_by_date_range(line_user_id, date_start=None, date_end=None):
+    match_stage = {"line_user_id": line_user_id}
 
-def _summary(line_user_id, week_start):
+    if date_start:
+        match_stage["created_at"] = {"$gte": date_start}
+    if date_end:
+        if "created_at" not in match_stage:
+            match_stage["created_at"] = {}
+        match_stage["created_at"]["$lt"] = date_end
+
     pipeline = [
-        {"$match": {"line_user_id": line_user_id, "created_at": {"$gte": week_start}}},
-        {"$group": {"_id": "$category", "total": {"$sum": "$amount"}}}
+        {"$match": match_stage},
+        {"$group": {"_id": "$category", "total": {"$sum": "$amount"}}},
+        {"$sort": {"total": -1}} 
     ]
     return list(db.expenses.aggregate(pipeline))
+
+def get_category_expenses(user_id, category, start_time=None):
+    match_stage = {
+        "line_user_id": user_id,
+        "category": category
+    }
+    if start_time:
+        match_stage["created_at"] = {"$gte": start_time}
+    
+    return list(db.expenses.aggregate([
+        {"$match": match_stage}  ,
+        {"$sort": {"created_at": -1}}  # 新→舊 排序
+        ]))
+
 def insert_category(name, keywords=None):
     db.categories.update_one(
         {"name": name},

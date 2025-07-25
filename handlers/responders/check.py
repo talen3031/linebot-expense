@@ -1,8 +1,8 @@
-from db import get_all_expenses, _summary
+from db import get_all_expenses, summary_by_date_range,get_category_expenses
 from linemessage import send_flex_summary, send_expense_detail, send_month_menu
 from datetime import datetime, timedelta
 from linebot.models import TextSendMessage
-
+from collections import defaultdict
 def parse_date_safe(val):
     if isinstance(val, datetime):
         return val
@@ -19,47 +19,14 @@ def parse_date_safe(val):
 
 def handle(event, line_bot_api, user_id, command):
     scope = command.get("scope")
-
-    # 查帳（查詢所有明細，純列表）
-    if scope == "all":
-        recs = get_all_expenses(user_id)
-        send_expense_detail(event, line_bot_api, recs)
-
     # 月份選單
-    elif scope == "month_menu":
+    if scope == "month_menu":
         send_month_menu(event, line_bot_api)
 
-    # 所有分類統計（所有統計、全部統計）
-    elif scope == "all_summary":
-        records = get_all_expenses(user_id)
-        if not records:
-            line_bot_api.reply_message(event.reply_token, TextSendMessage("目前沒有任何支出紀錄"))
-            return
-        from collections import defaultdict
-        summary = defaultdict(int)
-        for r in records:
-            summary[r["category"]] += r["amount"]
-        stats = [{"_id": k, "total": v} for k, v in summary.items()]
-        send_flex_summary(event, line_bot_api, stats, "所有統計")
-
-    # 指定月份統計（如查7月統計）
-    elif scope == "month_stat":
-        month = command["month"]
-        today = datetime.now()
-        year = today.year
-        if today.month < month: year -= 1
-        month_start = datetime(year, month, 1)
-        month_end = datetime(year+1, 1, 1) if month == 12 else datetime(year, month+1, 1)
-        records = [r for r in get_all_expenses(user_id) if month_start <= r["created_at"] < month_end]
-        if not records:
-            line_bot_api.reply_message(event.reply_token, TextSendMessage(f"{month}月尚無支出紀錄"))
-            return
-        from collections import defaultdict
-        summary = defaultdict(int)
-        for r in records:
-            summary[r["category"]] += r["amount"]
-        stats = [{"_id": k, "total": v} for k, v in summary.items()]
-        send_flex_summary(event, line_bot_api, stats, f"{month}月統計", month)
+     # 查帳（查詢所有明細，純列表）
+    elif scope == "all":
+        recs = get_all_expenses(user_id)
+        send_expense_detail(event, line_bot_api, recs)
 
     # 指定月份+分類明細（查6月住家、查7月飲食...）
     elif scope == "month_cat":
@@ -70,9 +37,9 @@ def handle(event, line_bot_api, user_id, command):
         month_start = datetime(year, month, 1)
         month_end = datetime(year+1, 1, 1) if month == 12 else datetime(year, month+1, 1)
 
-        # 這裡修正型別問題！
         records = []
         for r in get_all_expenses(user_id):
+            # 這裡修正型別問題
             created_at = parse_date_safe(r["created_at"])
             if created_at and r["category"] == cat and month_start <= created_at < month_end:
                 records.append(r)
@@ -87,7 +54,7 @@ def handle(event, line_bot_api, user_id, command):
         cat = command["cat"]
         today = datetime.now()
         month_start = today.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-        records = [r for r in get_all_expenses(user_id) if r['category'] == cat and r['created_at'] >= month_start]
+        records = get_category_expenses(user_id, cat, month_start)
         if not records:
             line_bot_api.reply_message(event.reply_token, TextSendMessage(f"本月沒有「{cat}」類別的紀錄"))
             return
@@ -99,7 +66,7 @@ def handle(event, line_bot_api, user_id, command):
         today = datetime.now()
         week_start = today - timedelta(days=today.weekday())
         week_start = week_start.replace(hour=0, minute=0, second=0, microsecond=0)
-        records = [r for r in get_all_expenses(user_id) if r['category'] == cat and r['created_at'] >= week_start]
+        records = get_category_expenses(user_id, cat, week_start)
         if not records:
             line_bot_api.reply_message(event.reply_token, TextSendMessage(f"本週沒有「{cat}」類別的紀錄"))
             return
@@ -110,7 +77,8 @@ def handle(event, line_bot_api, user_id, command):
         cat = command["cat"]
         today = datetime.now()
         day_start = today.replace(hour=0, minute=0, second=0, microsecond=0)
-        records = [r for r in get_all_expenses(user_id) if r['category'] == cat and r['created_at'] >= day_start]
+        records = get_category_expenses(user_id, cat, day_start)
+        
         if not records:
             line_bot_api.reply_message(event.reply_token, TextSendMessage(f"本日沒有「{cat}」類別的紀錄"))
             return
@@ -119,26 +87,66 @@ def handle(event, line_bot_api, user_id, command):
     # 查詢所有時間的單一分類明細（查所有飲食、查所有交通...）
     elif scope == "all_cat":
         cat = command["cat"]
-        records = [r for r in get_all_expenses(user_id) if r['category'] == cat]
+        records = get_category_expenses(user_id, cat)
+
         send_expense_detail(event, line_bot_api, records,cat, "全部")
+
+
 
     # 本日統計
     elif scope == "day":
         today = datetime.now()
         day_start = today.replace(hour=0, minute=0, second=0, microsecond=0)
-        stats = _summary(user_id, day_start)
+        stats = summary_by_date_range(user_id, day_start)
+        if not stats:
+            line_bot_api.reply_message(event.reply_token, TextSendMessage("本日尚無支出紀錄"))
+            return
         send_flex_summary(event, line_bot_api, stats, "本日統計")
 
     # 本週統計
     elif scope == "week":
         today = datetime.now()
         week_start = today - timedelta(days=today.weekday())
-        stats = _summary(user_id, week_start)
+        stats = summary_by_date_range(user_id, week_start)
+        if not stats:
+            line_bot_api.reply_message(event.reply_token, TextSendMessage("本週尚無支出紀錄"))
+            return
         send_flex_summary(event, line_bot_api, stats, "本週統計")
 
     # 本月統計
     elif scope == "month":
         today = datetime.now()
         month_start = today.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-        stats = _summary(user_id, month_start)
+        stats = summary_by_date_range(user_id, month_start)
+        if not stats:
+            line_bot_api.reply_message(event.reply_token, TextSendMessage("本月尚無支出紀錄"))
+            return
         send_flex_summary(event, line_bot_api, stats, "本月統計")
+    # 所有分類統計（所有統計、全部統計）
+    elif scope == "all_summary":
+        stats = summary_by_date_range(user_id)
+        if not stats:
+            line_bot_api.reply_message(event.reply_token, TextSendMessage("目前沒有任何支出紀錄"))
+            return
+
+        send_flex_summary(event, line_bot_api, stats, "所有統計")
+
+
+    # 指定月份統計（如查7月統計）
+    elif scope == "month_stat":
+        month = command["month"]
+        today = datetime.now()
+        year = today.year
+        if today.month < month:
+            year -= 1
+
+        month_start = datetime(year, month, 1)
+        month_end = datetime(year+1, 1, 1) if month == 12 else datetime(year, month+1, 1)
+
+        stats = summary_by_date_range(user_id, month_start, month_end)
+
+        if not stats:
+            line_bot_api.reply_message(event.reply_token, TextSendMessage(f"{month}月尚無支出紀錄"))
+            return
+
+        send_flex_summary(event, line_bot_api, stats, f"{month}月統計", month)
