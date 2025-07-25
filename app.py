@@ -11,6 +11,9 @@ handler = WebhookHandler(LINE_CHANNEL_SECRET)
 
 @app.route("/callback", methods=['POST'])
 def callback():
+    print("==收到 LINE webhook ==")
+    print("Headers:", request.headers)
+    print("Body:", request.get_data(as_text=True))
     signature = request.headers['X-Line-Signature']
     body = request.get_data(as_text=True)
     try:
@@ -23,6 +26,6 @@ def callback():
 @handler.add(MessageEvent, message=TextMessage)
 def on_message(event):
     handle_text_message(event, line_bot_api)
-
+    
 if __name__ == "__main__":
-    app.run(port=5000)
+    app.run(host='0.0.0.0', port=5000)
