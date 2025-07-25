@@ -20,7 +20,7 @@ def send_expense_detail(event, line_bot_api, records, cat=None, period_text=None
         # 是否顯示日期？全部明細不用、分類明細要顯示
         line_contents = [
             {"type": "text", "text": f"{i+1}. {desc}", "size": "sm", "flex": 5 if cat else 4},
-            {"type": "text", "text": f"{amount}元", "size": "sm", "flex": 2, "align": "end"},
+            {"type": "text", "text": f"{amount:,}元", "size": "sm", "flex": 3, "align": "end", "color": "#333333"},
         ]
         if cat:  # 分類明細要顯示日期
             line_contents.append(
@@ -45,7 +45,16 @@ def send_expense_detail(event, line_bot_api, records, cat=None, period_text=None
         "margin": "md",
         "contents": [
             {"type": "text", "text": "總額", "size": "md" if cat else "sm", "weight": "bold", "flex": 5 if cat else 4, "color": "#E0341B" if cat else "#C0504D"},
-            {"type": "text", "text": f"{total}元", "size": "md" if cat else "sm", "weight": "bold", "flex": 2, "color": "#E0341B" if cat else "#C0504D", "align": "end"},
+            {
+                "type": "text",
+                "text": f"{total:,}元",
+                "size": "sm",        # 或 "xs"
+                "weight": "regular",
+                "flex": 4,           # 視兩欄分配調整
+                "color": "#E0341B",
+                "align": "end",
+                "wrap": True         # 強制自動換行，手機不爆版
+            },
             {"type": "text", "text": " ", "flex": 3 if cat else 2}
         ]
     })
@@ -216,7 +225,7 @@ def send_flex_summary(event, line_bot_api, stats, period_text="本期", month_nu
         "margin": "md",
         "contents": [
             {"type": "text", "text": f"{period_text}總額", "size": "md", "weight": "bold", "flex": 4, "color": "#E0341B"},
-            {"type": "text", "text": f"{total_amount}元", "size": "md", "weight": "bold", "flex": 2, "color": "#E0341B", "align": "end"}
+            {"type": "text", "text": f"{total_amount:,}元", "size": "md", "weight": "bold", "flex": 2, "color": "#E0341B", "align": "end"}
         ]
     })
 
