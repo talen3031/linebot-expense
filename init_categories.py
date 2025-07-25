@@ -50,6 +50,8 @@ category_keywords = {
 
 
 # 依你的 config 修改
+print(MONGO_URI)
+print(DB_NAME)
 client = MongoClient(MONGO_URI)
 db = client[DB_NAME]
 
