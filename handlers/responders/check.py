@@ -1,4 +1,4 @@
-from db import get_all_expenses, summary_by_date_range,get_category_expenses
+from db import get_all_expenses, summary_by_date_range,get_category_expenses,get_last_expenses
 from linemessage import send_flex_summary, send_expense_detail, send_month_menu
 from datetime import datetime, timedelta
 from linebot.models import TextSendMessage
@@ -22,7 +22,10 @@ def handle(event, line_bot_api, user_id, command):
     # 月份選單
     if scope == "month_menu":
         send_month_menu(event, line_bot_api)
-
+    # 查帳（查詢所有明細，純列表）
+    elif scope == "recent_detail":
+        recs = get_last_expenses(user_id)
+        send_expense_detail(event, line_bot_api, recs)
      # 查帳（查詢所有明細，純列表）
     elif scope == "all":
         recs = get_all_expenses(user_id)

@@ -36,5 +36,10 @@ def handle(event, line_bot_api, user_id, command):
             insert_expense(user_id, category, amount, desc, datetime.now())
             line_bot_api.reply_message(
                 event.reply_token,
-                TextSendMessage(f"已記錄：{desc}（{category}） {amount}元")
+                TextSendMessage(
+                    f"📝 已記錄\n"
+                    f"🗒️ 描述：{desc}\n"
+                    f"📂 類別：{category}\n"
+                    f"💰 金額：{amount} 元"
+                )
             )

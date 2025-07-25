@@ -64,8 +64,8 @@ def send_expense_detail(event, line_bot_api, records, cat=None, period_text=None
         title = f"{period_text or ''}{cat}明細"
         alt_text = title
     else:
-        title = "全部明細"
-        alt_text = "全部明細"
+        title = "明細"
+        alt_text = "明細"
 
     flex_data = {
         "type": "bubble",
@@ -97,7 +97,7 @@ def send_flex_summary(event, line_bot_api, stats, period_text="本期", month_nu
                     QuickReplyButton(action=MessageAction(label="本日統計", text="本日統計")),
                     QuickReplyButton(action=MessageAction(label="本週統計", text="本週統計")),
                     QuickReplyButton(action=MessageAction(label="本月統計", text="本月統計")),
-                    QuickReplyButton(action=MessageAction(label="查看明細", text="查帳"))
+                    QuickReplyButton(action=MessageAction(label="所有明細", text="所有明細"))
                 ])
             )
         )
@@ -113,7 +113,7 @@ def send_flex_summary(event, line_bot_api, stats, period_text="本期", month_nu
                     QuickReplyButton(action=MessageAction(label="本日統計", text="本日統計")),
                     QuickReplyButton(action=MessageAction(label="本週統計", text="本週統計")),
                     QuickReplyButton(action=MessageAction(label="本月統計", text="本月統計")),
-                    QuickReplyButton(action=MessageAction(label="查看明細", text="查帳"))
+                    QuickReplyButton(action=MessageAction(label="所有明細", text="所有明細"))
                 ])
             )
         )
@@ -250,7 +250,7 @@ def send_flex_summary(event, line_bot_api, stats, period_text="本期", month_nu
                 QuickReplyButton(action=MessageAction(label="本日統計", text="本日統計")),
                 QuickReplyButton(action=MessageAction(label="本週統計", text="本週統計")),
                 QuickReplyButton(action=MessageAction(label="本月統計", text="本月統計")),
-                QuickReplyButton(action=MessageAction(label="查所有明細", text="查帳"))
+                QuickReplyButton(action=MessageAction(label="所有明細", text="所有明細"))
             ])
         )
     )
