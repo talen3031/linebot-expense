@@ -3,6 +3,20 @@ from linemessage import send_flex_summary, send_expense_detail, send_month_menu
 from datetime import datetime, timedelta
 from linebot.models import TextSendMessage
 
+def parse_date_safe(val):
+    if isinstance(val, datetime):
+        return val
+    if isinstance(val, str):
+        try:
+            if len(val) == 10:
+                return datetime.strptime(val, "%Y-%m-%d")
+            if "T" in val:
+                return datetime.fromisoformat(val)
+            return datetime.strptime(val, "%Y-%m-%d %H:%M:%S")
+        except Exception:
+            return None
+    return None
+
 def handle(event, line_bot_api, user_id, command):
     scope = command.get("scope")
 
@@ -47,7 +61,7 @@ def handle(event, line_bot_api, user_id, command):
         stats = [{"_id": k, "total": v} for k, v in summary.items()]
         send_flex_summary(event, line_bot_api, stats, f"{month}月統計", month)
 
-    # 指定月份+分類明細（查7月飲食、查7月交通...）
+    # 指定月份+分類明細（查6月住家、查7月飲食...）
     elif scope == "month_cat":
         month, cat = command["month"], command["cat"]
         today = datetime.now()
@@ -55,11 +69,18 @@ def handle(event, line_bot_api, user_id, command):
         if today.month < month: year -= 1
         month_start = datetime(year, month, 1)
         month_end = datetime(year+1, 1, 1) if month == 12 else datetime(year, month+1, 1)
-        records = [r for r in get_all_expenses(user_id) if r["category"] == cat and month_start <= r["created_at"] < month_end]
+
+        # 這裡修正型別問題！
+        records = []
+        for r in get_all_expenses(user_id):
+            created_at = parse_date_safe(r["created_at"])
+            if created_at and r["category"] == cat and month_start <= created_at < month_end:
+                records.append(r)
+
         if not records:
             line_bot_api.reply_message(event.reply_token, TextSendMessage(f"{month}月沒有「{cat}」類別的紀錄"))
             return
-        send_expense_detail(event, line_bot_api, records,cat, f"{month}月")
+        send_expense_detail(event, line_bot_api, records, cat, f"{month}月")
 
     # 本月某分類明細（查本月飲食、查本月交通...）
     elif scope == "this_month_cat":

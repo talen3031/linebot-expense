@@ -16,15 +16,7 @@ def send_expense_detail(event, line_bot_api, records, cat=None, period_text=None
     for i, r in enumerate(records):
         amount = int(r.get('amount', 0) or 0)
         desc = r.get('desc', ' ')
-        date_obj = r.get('created_at')
-        # 美化日期
-        if date_obj:
-            if date_obj.year == datetime.now().year:
-                date_str = date_obj.strftime("%m/%d")
-            else:
-                date_str = date_obj.strftime("%Y/%m/%d")
-        else:
-            date_str = ""
+        date_str = r['created_at'].strftime("%Y-%m-%d") if r.get("created_at") else " "
         # 是否顯示日期？全部明細不用、分類明細要顯示
         line_contents = [
             {"type": "text", "text": f"{i+1}. {desc}", "size": "sm", "flex": 5 if cat else 4},
@@ -32,7 +24,7 @@ def send_expense_detail(event, line_bot_api, records, cat=None, period_text=None
         ]
         if cat:  # 分類明細要顯示日期
             line_contents.append(
-                {"type": "text", "text": date_str, "size": "xxs", "color": "#AAA", "flex": 3, "align": "end"}
+                {"type": "text", "text": date_str, "size": "xxs", "color": "#AAAAAA", "flex": 3, "align": "end"}
             )
         else:    # 全部明細要顯示分類
             line_contents.append(
@@ -83,6 +75,7 @@ def send_expense_detail(event, line_bot_api, records, cat=None, period_text=None
         event.reply_token,
         FlexSendMessage(alt_text=alt_text, contents=flex_data)
     )
+
 
 
 def send_flex_summary(event, line_bot_api, stats, period_text="本期", month_number=None):
@@ -143,14 +136,12 @@ def send_flex_summary(event, line_bot_api, stats, period_text="本期", month_nu
 
     if month_number is not None:
         cmd_prefix = f"查{month_number}月"
-    elif period_text == "所有紀錄":
-        cmd_prefix = "查所有"
     else:
         period_cmd_map = {
-            "本月": "查本月",
-            "本週": "查本週",
-            "本日": "查本日",
-            "本期": "查本期"
+            "本月統計": "查本月",
+            "本週統計": "查本週",
+            "本日統計": "查本日",
+            "所有統計": "查所有"
         }
         cmd_prefix = period_cmd_map.get(period_text, "查")
 
@@ -235,7 +226,7 @@ def send_flex_summary(event, line_bot_api, stats, period_text="本期", month_nu
             "type": "box",
             "layout": "vertical",
             "contents": [
-                {"type": "text", "text": f"{period_text}支出統計", "weight": "bold", "size": "xl", "margin": "md"},
+                {"type": "text", "text": f"{period_text}支出", "weight": "bold", "size": "xl", "margin": "md"},
                 {"type": "separator", "margin": "md"},
                 {"type": "box", "layout": "vertical", "margin": "md", "spacing": "md", "contents": items}
             ]
@@ -245,7 +236,7 @@ def send_flex_summary(event, line_bot_api, stats, period_text="本期", month_nu
     line_bot_api.reply_message(
         event.reply_token,
         FlexSendMessage(
-            alt_text=f"{period_text}支出統計",
+            alt_text=f"{period_text}支出",
             contents=flex_data,
             quick_reply=QuickReply(items=[
                 QuickReplyButton(action=MessageAction(label="本日統計", text="本日統計")),
