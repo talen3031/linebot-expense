@@ -1,4 +1,5 @@
 from linebot.models import QuickReply, QuickReplyButton, MessageAction, FlexSendMessage, TextSendMessage
+from datetime import datetime
 
 def send_expense_detail(event, line_bot_api, records, cat=None, period_text=None):
     """
@@ -15,7 +16,15 @@ def send_expense_detail(event, line_bot_api, records, cat=None, period_text=None
     for i, r in enumerate(records):
         amount = int(r.get('amount', 0) or 0)
         desc = r.get('desc', ' ')
-        date_str = r['created_at'].strftime("%Y-%m-%d") if r.get("created_at") else " "
+        date_obj = r.get('created_at')
+        # 美化日期
+        if date_obj:
+            if date_obj.year == datetime.now().year:
+                date_str = date_obj.strftime("%m/%d")
+            else:
+                date_str = date_obj.strftime("%Y/%m/%d")
+        else:
+            date_str = ""
         # 是否顯示日期？全部明細不用、分類明細要顯示
         line_contents = [
             {"type": "text", "text": f"{i+1}. {desc}", "size": "sm", "flex": 5 if cat else 4},
@@ -23,7 +32,7 @@ def send_expense_detail(event, line_bot_api, records, cat=None, period_text=None
         ]
         if cat:  # 分類明細要顯示日期
             line_contents.append(
-                {"type": "text", "text": date_str, "size": "xs", "color": "#AAAAAA", "flex": 3, "align": "end"}
+                {"type": "text", "text": date_str, "size": "xxs", "color": "#AAA", "flex": 3, "align": "end"}
             )
         else:    # 全部明細要顯示分類
             line_contents.append(
