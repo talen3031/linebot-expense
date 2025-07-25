@@ -24,15 +24,15 @@ def home():
 
 @app.route("/callback", methods=['POST'])
 def callback():
-    print("==收到 LINE webhook ==")
+    #print("==收到 LINE webhook ==")
     try:
         signature = request.headers.get('X-Line-Signature', 'no-signature')
         body = request.get_data(as_text=True)
-        print("Body:", body)
-        print("Signature:", signature)
+        #print("Body:", body)
+        #print("Signature:", signature)
         handler.handle(body, signature)
     except Exception as e:
-        print("Webhook Exception:", repr(e))  
+        #print("Webhook Exception:", repr(e))  
         abort(400)
     return 'OK'
 

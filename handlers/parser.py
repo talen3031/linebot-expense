@@ -20,6 +20,7 @@ month_text_set = {
     "這個月花多少", "本月花多少", "本月份花多少"
 }
 def parse_command(text):
+    print("text:",text)
     # 統計：本日
     if text in day_text_set:
         return {"type": "check", "scope": "day"}
@@ -79,11 +80,13 @@ def parse_command(text):
     # 刪除第x筆到第y筆
     m = re.match(r"刪除第\s*(\d+)\s*筆到第\s*(\d+)\s*筆", text)
     if m:
+        print("刪除第x筆到第y筆")
         return {"type": "delete", "scope": "range", "start": int(m.group(1)) - 1, "end": int(m.group(2)) - 1}
     
     # 刪除單一筆（如刪除第2筆）
     m = re.match(r"刪除第\s*(\d+)\s*筆", text)
     if m:
+        print("刪除第x筆")
         return {"type": "delete", "scope": "single", "idx": int(m.group(1)) - 1}
     
     # 刪除全部
