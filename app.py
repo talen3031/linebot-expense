@@ -13,8 +13,8 @@ handler = WebhookHandler(LINE_CHANNEL_SECRET)
 
 
 
-LINE_BOT_QR_URL = "https://qr-official.line.me/sid/L/412glvdt.png"
-LINE_BOT_ADD_URL = "https://line.me/R/ti/p/%40412glvdt"
+LINE_BOT_QR_URL = "https://qr-official.line.me/sid/L/757mmhxf.png"
+LINE_BOT_ADD_URL = "https://line.me/R/ti/p/%40757mmhxf"
 
 @app.route("/")
 def home():
