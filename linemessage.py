@@ -1,68 +1,39 @@
 from linebot.models import QuickReply, QuickReplyButton, MessageAction, FlexSendMessage, TextSendMessage
 
-def send_all_detail(event, line_bot_api, records):
+def send_expense_detail(event, line_bot_api, records, cat=None, period_text=None):
+    """
+    通用支出明細 Flex Message
+    - cat: 分類名稱（None 則為全部）
+    - period_text: 時間區間（None 則為全部）
+    """
     if not records:
         line_bot_api.reply_message(event.reply_token, TextSendMessage("目前沒有紀錄"))
         return
 
     items = []
-    total_amount = 0
-    for i, r in enumerate(records):
-        amount = int(r.get('amount', 0) or 0)
-        items.append({
-            "type": "box",
-            "layout": "horizontal",
-            "contents": [
-                {"type": "text", "text": f"{i+1}. {r.get('desc', ' ')}", "size": "sm", "flex": 4},
-                {"type": "text", "text": f"{amount}元", "size": "sm", "flex": 2, "align": "end"},
-                {"type": "text", "text": f"({r.get('category', '')})", "size": "sm", "color": "#AAAAAA", "flex": 2, "align": "end"}
-            ]
-        })
-        total_amount += amount
-
-    # 新增總額
-    items.append({
-        "type": "box",
-        "layout": "horizontal",
-        "contents": [
-            {"type": "text", "text": "總額", "size": "sm", "weight": "bold", "flex": 4, "color": "#C0504D"},
-            {"type": "text", "text": f"{total_amount}元", "size": "sm", "weight": "bold", "flex": 2, "color": "#C0504D", "align": "end"},
-            {"type": "text", "text": " ", "size": "sm", "flex": 2}
-        ]
-    })
-
-    flex_data = {
-        "type": "bubble",
-        "body": {
-            "type": "box",
-            "layout": "vertical",
-            "contents": [
-                {"type": "text", "text": "全部紀錄", "weight": "bold", "size": "lg", "margin": "md"},
-                {"type": "separator", "margin": "md"},
-                {"type": "box", "layout": "vertical", "margin": "md", "spacing": "sm", "contents": items}
-            ]
-        }
-    }
-    line_bot_api.reply_message(
-        event.reply_token,
-        FlexSendMessage(alt_text="全部紀錄", contents=flex_data)
-    )
-
-def send_category_detail(event, line_bot_api, cat, records, period_text):
-    # 統計總額
     total = 0
-    items = []
     for i, r in enumerate(records):
         amount = int(r.get('amount', 0) or 0)
+        desc = r.get('desc', ' ')
         date_str = r['created_at'].strftime("%Y-%m-%d") if r.get("created_at") else " "
+        # 是否顯示日期？全部明細不用、分類明細要顯示
+        line_contents = [
+            {"type": "text", "text": f"{i+1}. {desc}", "size": "sm", "flex": 5 if cat else 4},
+            {"type": "text", "text": f"{amount}元", "size": "sm", "flex": 2, "align": "end"},
+        ]
+        if cat:  # 分類明細要顯示日期
+            line_contents.append(
+                {"type": "text", "text": date_str, "size": "xs", "color": "#AAAAAA", "flex": 3, "align": "end"}
+            )
+        else:    # 全部明細要顯示分類
+            line_contents.append(
+                {"type": "text", "text": f"({r.get('category', '')})", "size": "sm", "color": "#AAAAAA", "flex": 2, "align": "end"}
+            )
+
         items.append({
             "type": "box",
             "layout": "horizontal",
-            "contents": [
-                {"type": "text", "text": f"{i+1}. {r.get('desc', ' ')}", "size": "sm", "flex": 5},
-                {"type": "text", "text": f"{amount}元", "size": "sm", "flex": 2, "align": "end"},
-                {"type": "text", "text": date_str, "size": "xs", "color": "#AAAAAA", "flex": 3, "align": "end"}
-            ]
+            "contents": line_contents
         })
         total += amount
 
@@ -72,11 +43,19 @@ def send_category_detail(event, line_bot_api, cat, records, period_text):
         "layout": "horizontal",
         "margin": "md",
         "contents": [
-            {"type": "text", "text": f"總額", "size": "md", "weight": "bold", "flex": 5, "color": "#E0341B"},
-            {"type": "text", "text": f"{total}元", "size": "md", "weight": "bold", "flex": 2, "color": "#E0341B", "align": "end"},
-            {"type": "text", "text": " ", "flex": 3}
+            {"type": "text", "text": "總額", "size": "md" if cat else "sm", "weight": "bold", "flex": 5 if cat else 4, "color": "#E0341B" if cat else "#C0504D"},
+            {"type": "text", "text": f"{total}元", "size": "md" if cat else "sm", "weight": "bold", "flex": 2, "color": "#E0341B" if cat else "#C0504D", "align": "end"},
+            {"type": "text", "text": " ", "flex": 3 if cat else 2}
         ]
     })
+
+    # 標題
+    if cat:
+        title = f"{period_text or ''}{cat}明細"
+        alt_text = title
+    else:
+        title = "全部明細"
+        alt_text = "全部明細"
 
     flex_data = {
         "type": "bubble",
@@ -84,7 +63,7 @@ def send_category_detail(event, line_bot_api, cat, records, period_text):
             "type": "box",
             "layout": "vertical",
             "contents": [
-                {"type": "text", "text": f"{period_text}{cat}明細", "weight": "bold", "size": "lg", "margin": "md"},
+                {"type": "text", "text": title, "weight": "bold", "size": "lg", "margin": "md"},
                 {"type": "separator", "margin": "md"},
                 {"type": "box", "layout": "vertical", "margin": "md", "spacing": "sm", "contents": items}
             ]
@@ -93,12 +72,9 @@ def send_category_detail(event, line_bot_api, cat, records, period_text):
 
     line_bot_api.reply_message(
         event.reply_token,
-        FlexSendMessage(alt_text=f"{period_text}{cat}明細", contents=flex_data)
+        FlexSendMessage(alt_text=alt_text, contents=flex_data)
     )
 
-from linebot.models import (
-    QuickReply, QuickReplyButton, MessageAction, FlexSendMessage, TextSendMessage
-)
 
 def send_flex_summary(event, line_bot_api, stats, period_text="本期", month_number=None):
     if not stats:

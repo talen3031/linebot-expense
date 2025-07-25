@@ -6,6 +6,7 @@ from linebot.models import TextSendMessage
 
 def handle(event, line_bot_api, user_id, command):
     scope = command.get("scope")
+    #多筆新增
     if scope == "multi":
         lines = command["raw"].splitlines()
         added_msgs = []
@@ -24,6 +25,8 @@ def handle(event, line_bot_api, user_id, command):
                 added_msgs.append(f"❌ 無法辨識：「{line}」")
         reply = "已記錄：\n" + "\n".join(added_msgs)
         line_bot_api.reply_message(event.reply_token, TextSendMessage(reply))
+    #單筆新增
+    
     elif scope == "single":
         match = re.match(r"(.+?)\s*(\d+)$", command["raw"])
         if match:

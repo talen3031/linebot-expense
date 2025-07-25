@@ -3,6 +3,8 @@ from linebot.models import TextSendMessage
 
 def handle(event, line_bot_api, user_id, command):
     scope = command.get("scope")
+
+    # 刪除範圍（多筆，例如：刪除第3筆到第7筆）
     if scope == "range":
         start_idx, end_idx = command["start"], command["end"]
         if start_idx >= 0 and end_idx >= start_idx:
@@ -14,6 +16,8 @@ def handle(event, line_bot_api, user_id, command):
         else:
             msg = "請輸入正確的區間"
         line_bot_api.reply_message(event.reply_token, TextSendMessage(msg))
+
+    # 刪除單筆（例如：刪除第2筆）
     elif scope == "single":
         idx = command["idx"]
         if idx >= 0:
@@ -24,6 +28,8 @@ def handle(event, line_bot_api, user_id, command):
         else:
             msg = "請輸入正確的筆數"
         line_bot_api.reply_message(event.reply_token, TextSendMessage(msg))
+
+    # 刪除全部
     elif scope == "all":
         count = delete_all_expenses(user_id)
         if count:
