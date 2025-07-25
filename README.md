@@ -6,18 +6,19 @@
 **已成功部署於 Railway 雲端平台：**  
 👉 [https://web-production-ef82.up.railway.app/](https://web-production-ef82.up.railway.app/)
 
-首頁提供「一鍵加入好友」按鈕與 QR Code，手機或桌機都能輕鬆加入。  
-完成加好友後，即可在 LINE 聊天室輸入「早餐 60」等訊息進行快速記帳。
+首頁提供「一鍵加入好友」按鈕與 QR Code，手機或桌機都能加入。  
 
 ---
 
 ## 主要功能
 
-- **自然語言記帳**：輸入「早餐 60」自動分類與記錄，也支援多筆資料換行輸入。
-- **自動分類**：結合 NLP，描述與分類自動對應，支援自訂關鍵字與括號標註（如：機車（交通）100）。
-- **查詢/刪除**：查帳、查分類明細、刪除指定筆數/區間/全部支出。
-- **統計分析**：本日/本週/本月支出統計，圖表化展現（Flex message 條狀圖），可點擊圖表分類查詢明細。
-- **視覺化回覆**：全部回覆皆支援 LINE Flex Message 格式，顯示明細與統計。
+- **自然語言記帳**：輸入「早餐 60」自動分類與記錄，也支援多筆資料換行輸入
+- **自動分類**：結合 NLP，描述與分類自動對應，支援自訂關鍵字與括號標註（如：機車（交通）100 會將關鍵字"機車"加入"交通"類別）
+- **查詢**：輸入:查帳(查詢近五筆明細)、所有明細
+- **刪除**：輸入: 刪除第1筆 / 刪除第3筆到第8筆 / 刪除全部
+- **統計分析**：輸入:本日/本週/本月/某月 統計，回傳圖表化展現（Flex message 條狀圖），可點擊圖表查詢該分類明細
+- **月份選單**：輸入:月份選單，快速選擇月份統計，可點擊選單查詢該月份統計
+- **視覺化回覆**：全部回覆皆支援 LINE Flex Message 格式，顯示明細與統計
 
 ---
 
@@ -25,8 +26,8 @@
 
 - **後端框架**：Flask
 - **LINE SDK**：line-bot-sdk
-- **資料庫**：MongoDB
-- **NLP 分類**：jieba 分詞 + 關鍵字字典自學習
+- **資料庫**：MongoDB(Atlas)
+- **NLP 分類**：jieba 分詞 
 
 ---
 ## Webhook 架設與 LINE Bot 設定方式
@@ -57,20 +58,43 @@
 | _id       | ObjectId| 主鍵                        |
 | category  | string  | 分類名稱（如飲食）          |
 | keywords  | array   | 關鍵字列表（如["早餐"]）    |
-| updated_at| datetime| 更新時間                    |
 
 ### users（用戶資訊）
 
 | 欄位         | 型別      | 說明                               |
-|--------------|-----------|------------------------------------|
+|--------------|-----------|-----------------------------------|
 | _id          | ObjectId  | MongoDB自動產生主鍵                |
-| line_user_id | string    | LINE User ID（唯一鍵，索引）        |
+| line_user_id | string    | LINE User ID                      |
 | display_name | string    | 用戶顯示名稱                       |
 | created_at   | datetime  | 加入時間（首次建立記錄時間）        |
-| last_active  | datetime  | 最近一次活動時間（可定期更新）      |
+| last_active  | datetime  | 最近一次活動時間（每次互動時更新） |
 
 ## 部署平台與架構
 
 - **平台**：Railway
 - **MongoDB 資料庫平台**：MongoDB Atlas
+- **流程圖**：
+    ```text
+    LINE 用戶
+        │
+        ▼
+    LINE 官方伺服器 (LINE Message API)
+        │（Webhook）
+        ▼
+    你的 Railway/Render Web App
+        │
+        ├─ ① 解析訊息 parse_command()
+        │
+        ├─ ② NLP 分類 nlp_classify()
+        │
+        ├─ ③ 資料寫入/查詢 MongoDB Atlas
+        │
+        └─ ④ 組合回應 (Flex message)
+        │
+        ▼
+    LINE 官方伺服器
+        │
+        ▼
+    LINE 用戶收到訊息
+    ```
 ---
