@@ -144,16 +144,15 @@ def send_flex_summary(event, line_bot_api, stats, period_text="本期", month_nu
     }
 
     if month_number is not None:
-        cmd_prefix = f"查{month_number}月"
+        cmd_prefix = f"{month_number}月"
     else:
         period_cmd_map = {
-            "本月統計": "查本月",
-            "本週統計": "查本週",
-            "本日統計": "查本日",
-            "所有統計": "查所有"
+            "本月統計": "本月",
+            "本週統計": "本週",
+            "本日統計": "本日",
+            "所有統計": "所有"
         }
-        cmd_prefix = period_cmd_map.get(period_text, "查")
-
+        cmd_prefix = period_cmd_map.get(period_text, "")
     stats = sorted(stats, key=lambda r: -r['total'])
     BAR_MAX = 20
 
@@ -267,7 +266,7 @@ def send_month_menu(event, line_bot_api):
             "action": {
                 "type": "message",
                 "label": f"{i}月",
-                "text": f"查{i}月統計"
+                "text": f"{i}月統計"
             }
         })
 
