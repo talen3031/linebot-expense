@@ -1,0 +1,7 @@
+flask
+pymongo
+line-bot-sdk
+jieba
+python-dotenv
+matplotlib 
+requests
