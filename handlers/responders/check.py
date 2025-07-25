@@ -22,7 +22,7 @@ def handle(event, line_bot_api, user_id, command):
     # 月份選單
     if scope == "month_menu":
         send_month_menu(event, line_bot_api)
-    # 查帳（查詢所有明細，純列表）
+    # 查帳（查詢近五筆）
     elif scope == "recent_detail":
         recs = get_last_expenses(user_id)
         send_expense_detail(event, line_bot_api, recs)

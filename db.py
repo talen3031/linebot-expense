@@ -16,6 +16,7 @@ def insert_expense(line_user_id, category, amount, desc, created_at):
 
 def get_last_expenses(line_user_id, limit=5):
     return list(db.expenses.find({"line_user_id": line_user_id}).sort("created_at", -1).limit(limit))
+
 def get_all_expenses(line_user_id):
     return list(db.expenses.find({"line_user_id": line_user_id}).sort("created_at", -1))
 

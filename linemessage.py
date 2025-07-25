@@ -17,20 +17,12 @@ def send_expense_detail(event, line_bot_api, records, cat=None, period_text=None
         amount = int(r.get('amount', 0) or 0)
         desc = r.get('desc', ' ')
         date_str = r['created_at'].strftime("%Y-%m-%d") if r.get("created_at") else " "
-        # 是否顯示日期？全部明細不用、分類明細要顯示
+        # 都顯示描述(分類) 金額 日期
         line_contents = [
-            {"type": "text", "text": f"{i+1}. {desc}", "size": "sm", "flex": 5 if cat else 4},
+            {"type": "text", "text": f"{i+1}. {desc} ({r.get('category', '')})", "size": "sm", "flex": 5},
             {"type": "text", "text": f"{amount:,}元", "size": "sm", "flex": 3, "align": "end", "color": "#333333"},
+            {"type": "text", "text": date_str, "size": "xxs", "color": "#AAAAAA", "flex": 3, "align": "end"},
         ]
-        if cat:  # 分類明細要顯示日期
-            line_contents.append(
-                {"type": "text", "text": date_str, "size": "xxs", "color": "#AAAAAA", "flex": 3, "align": "end"}
-            )
-        else:    # 全部明細要顯示分類
-            line_contents.append(
-                {"type": "text", "text": f"({r.get('category', '')})", "size": "sm", "color": "#AAAAAA", "flex": 2, "align": "end"}
-            )
-
         items.append({
             "type": "box",
             "layout": "horizontal",
